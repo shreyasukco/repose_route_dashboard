@@ -5,6 +5,8 @@ import folium
 from geopy.distance import geodesic
 from streamlit_folium import st_folium
 from scipy.spatial.distance import cdist
+import numpy as np
+
 
 # Streamlit config
 st.set_page_config(
