@@ -121,7 +121,7 @@ with col1:
 with col2:
     st.markdown(f"""
         <div class="metric-box">
-            <div class="metric-label">Total Active Dealers</div>
+            <div class="metric-label">Active Dealers</div>
             <div class="metric-value">{summary_metrics['Dealers']}</div>
         </div>
     """, unsafe_allow_html=True)
