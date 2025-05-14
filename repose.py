@@ -298,33 +298,39 @@ st.markdown("##### Optimized Route Planning")
 if df['name of bo'].nunique() != 1:
     st.warning("Please select only one single BO to run optimization.")
 else:
-    with st.spinner("Generating optimized route..."):
-        m = create_base_map([df['latitude'].mean(), df['longitude'].mean()])
-        color_cycler = itertools.cycle(px.colors.qualitative.Plotly)
+    # Create base map
+    m = create_base_map([df['latitude'].mean(), df['longitude'].mean()])
 
-        for route_name, group in df.groupby("route"):
-            coords = group[["latitude", "longitude"]].values
-            if len(coords) < 1:
-                continue
+    # Define color cycling for routes
+    color_cycler = itertools.cycle(px.colors.qualitative.Plotly)
 
-            route_indices = optimize_route(coords)
-            sorted_group = group.iloc[route_indices].reset_index(drop=True)
+    for route_name, group in df.groupby("route"):
+        coords = group[["latitude", "longitude"]].values
+        if len(coords) < 1:
+            continue
 
-            AntPath(
-                locations=sorted_group[["latitude", "longitude"]].values.tolist(),
-                color=next(color_cycler),
-                weight=6,
-                opacity=0.8,
-                tooltip=f"Route: {route_name}",
-                dash_array=[15, 25]
+        # Get the optimized route indices
+        route_indices = optimize_route(coords)
+        sorted_group = group.iloc[route_indices].reset_index(drop=True)
+
+        # Add AntPath for route visualization
+        AntPath(
+            locations=sorted_group[["latitude", "longitude"]].values.tolist(),
+            color=next(color_cycler),
+            weight=6,
+            opacity=0.8,
+            tooltip=f"Route: {route_name}",
+            dash_array=[15, 25]
+        ).add_to(m)
+
+        # Add markers for each location along the route
+        for i, row in sorted_group.iterrows():
+            icon_color = "red" if i == 0 else "green" if i == len(sorted_group)-1 else "blue"
+            folium.Marker(
+                location=[row["latitude"], row["longitude"]],
+                popup=f"{row['name of dealer']} ({i+1})",
+                icon=folium.Icon(color=icon_color)
             ).add_to(m)
 
-            for i, row in sorted_group.iterrows():
-                icon_color = "red" if i == 0 else "green" if i == len(sorted_group)-1 else "blue"
-                folium.Marker(
-                    location=[row["latitude"], row["longitude"]],
-                    popup=f"{row['name of dealer']} ({i+1})",
-                    icon=folium.Icon(color=icon_color)
-                ).add_to(m)
-
-        st_folium(m, width=1900, height=800, use_container_width=True)
+    # Display the map using st_folium without a spinner
+    st_folium(m, width=1900, height=800, use_container_width=True)
